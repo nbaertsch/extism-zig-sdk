@@ -1,20 +1,6 @@
 const std = @import("std");
 const Manifest = @import("manifest.zig").Manifest;
 const Function = @import("function.zig");
-
-// Helper function for JSON stringification in Zig 0.15+
-fn jsonStringifyAlloc(allocator: std.mem.Allocator, value: anytype) ![]u8 {
-    var out: std.io.Writer.Allocating = .init(allocator);
-    defer out.deinit();
-
-    var stringify: std.json.Stringify = .{
-        .writer = &out.writer,
-        .options = .{ .emit_null_optional_fields = false },
-    };
-    try stringify.write(value);
-
-    return allocator.dupe(u8, out.written());
-}
 const CancelHandle = @import("cancel_handle.zig");
 const c = @import("extism_c");
 const CompiledPlugin = @import("compiled_plugin.zig");
@@ -57,7 +43,7 @@ pub fn init(allocator: std.mem.Allocator, data: []const u8, functions: []const F
 
 /// Create a new plugin from the given manifest
 pub fn initFromManifest(allocator: std.mem.Allocator, manifest: Manifest, functions: []const Function, wasi: bool) !Self {
-    const json = try jsonStringifyAlloc(allocator, manifest);
+    const json = try std.json.Stringify.valueAlloc(allocator, manifest, .{ .emit_null_optional_fields = false });
     defer allocator.free(json);
     return init(allocator, json, functions, wasi);
 }
@@ -121,7 +107,7 @@ pub fn callWithContext(self: *Self, function_name: []const u8, input: []const u8
 
 /// Set configuration values
 pub fn setConfig(self: *Self, allocator: std.mem.Allocator, config: std.json.ArrayHashMap([]const u8)) !void {
-    const config_json = try jsonStringifyAlloc(allocator, config);
+    const config_json = try std.json.Stringify.valueAlloc(allocator, config, .{ .emit_null_optional_fields = false });
     defer allocator.free(config_json);
     _ = c.extism_plugin_config(self.ptr, config_json.ptr, @as(u64, config_json.len));
 }
