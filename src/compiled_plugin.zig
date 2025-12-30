@@ -2,7 +2,7 @@ const std = @import("std");
 const Manifest = @import("manifest.zig").Manifest;
 const Function = @import("function.zig");
 const CancelHandle = @import("cancel_handle.zig");
-const c = @import("ffi.zig");
+const c = @import("extism_c");
 
 const Self = @This();
 

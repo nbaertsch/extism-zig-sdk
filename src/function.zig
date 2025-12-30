@@ -1,5 +1,5 @@
 const std = @import("std");
-const c = @import("ffi.zig");
+const c = @import("extism_c");
 
 const Self = @This();
 c_func: ?*c.ExtismFunction,

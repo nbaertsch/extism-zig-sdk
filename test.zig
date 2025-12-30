@@ -6,7 +6,7 @@ const CurrentPlugin = sdk.CurrentPlugin;
 const Function = sdk.Function;
 const manifest = sdk.manifest;
 
-export fn hello_world(plugin_ptr: ?*sdk.c.ExtismCurrentPlugin, inputs: [*c]const sdk.c.ExtismVal, n_inputs: u64, outputs: [*c]sdk.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.C) void {
+export fn hello_world(plugin_ptr: ?*sdk.c.ExtismCurrentPlugin, inputs: [*c]const sdk.c.ExtismVal, n_inputs: u64, outputs: [*c]sdk.c.ExtismVal, n_outputs: u64, user_data: ?*anyopaque) callconv(.c) void {
     std.debug.print("Hello from Zig!\n", .{});
     const str_ud = @as([*:0]const u8, @ptrCast(user_data orelse unreachable));
     std.debug.print("User data: {s}\n", .{str_ud});
@@ -41,12 +41,12 @@ test "Single threaded tests" {
     var plugin = try Plugin.initFromManifest(testing.allocator, man, &[_]Function{f}, true);
     defer plugin.deinit();
 
-    std.debug.print("\nregister loaded plugin: {}\n", .{std.fmt.fmtDuration(wasm_start.read())});
+    std.debug.print("\nregister loaded plugin: {}\n", .{wasm_start.read()});
     const repeat = 1182;
     const input = "aeiouAEIOU____________________________________&smtms_y?" ** repeat;
     var data = try plugin.call("count_vowels", input);
     try testing.expectEqualStrings("{\"count\": 11820}", data);
-    std.debug.print("register plugin + function call: {}, sent input size: {} bytes\n", .{ std.fmt.fmtDuration(wasm_start.read()), input.len });
+    std.debug.print("register plugin + function call: {}, sent input size: {} bytes\n", .{ wasm_start.read(), input.len });
     var ctx: u64 = 12345;
     data = try plugin.callWithContext("count_vowels", input, @ptrCast(&ctx));
     try testing.expectEqualStrings("{\"count\": 11820}", data);
@@ -74,8 +74,8 @@ test "Single threaded tests" {
         native_elapsed += native_start.read();
     }
     const native_avg = native_elapsed / i;
-    std.debug.print("native function call (avg, N = {}): {}\n", .{ i, std.fmt.fmtDuration(native_avg) });
-    std.debug.print("wasm function call (avg, N = {}): {}\n", .{ i, std.fmt.fmtDuration(wasm_avg) });
+    std.debug.print("native function call (avg, N = {}): {}\n", .{ i, native_avg });
+    std.debug.print("wasm function call (avg, N = {}): {}\n", .{ i, wasm_avg });
 }
 
 test "Multi threaded tests" {
@@ -135,7 +135,7 @@ test "Plugin Cancellation" {
     var handle = plugin.cancelHandle();
     const S = struct {
         fn _test(h: *sdk.CancelHandle) void {
-            std.time.sleep(1 * std.time.ns_per_s);
+            std.Thread.sleep(1 * std.time.ns_per_s);
             _ = h.cancel();
         }
     };
@@ -144,5 +144,5 @@ test "Plugin Cancellation" {
     const output = plugin.call("infinite_loop", "abc123");
     const call_end = call_start.read();
     try std.testing.expectError(error.PluginCallFailed, output);
-    std.debug.print("Cancelled plugin ran for {}\n", .{std.fmt.fmtDuration(call_end)});
+    std.debug.print("Cancelled plugin ran for {}\n", .{call_end});
 }

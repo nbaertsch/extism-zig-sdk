@@ -1,6 +1,6 @@
 const std = @import("std");
 const testing = std.testing;
-pub const c = @import("ffi.zig");
+pub const c = @import("extism_c");
 
 pub const Plugin = @import("plugin.zig");
 pub const CompiledPlugin = @import("compiled_plugin.zig");

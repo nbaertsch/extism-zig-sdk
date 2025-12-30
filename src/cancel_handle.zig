@@ -1,4 +1,4 @@
-const c = @import("ffi.zig");
+const c = @import("extism_c");
 const Self = @This();
 
 handle: ?*const c.ExtismCancelHandle,
